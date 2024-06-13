@@ -1,0 +1,46 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.server
+    command: --debug --dbaddr db:3306 --dbuser pokerogue --dbpass pokerogue --dbname pokeroguedb
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "127.0.0.1:8001:8001"
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized" ]
+      start_period: 10s
+      start_interval: 10s
+      interval: 1m
+      timeout: 5s
+      retries: 3
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: pokeroguedb
+      MYSQL_USER: pokerogue
+      MYSQL_PASSWORD: pokerogue
+    volumes:
+      - database:/var/lib/mysql
+    ports:
+      - "127.0.0.1:3306:3306"
+  client:
+    image: ghcr.io/vveil/pokerogue.frontend:latest
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "127.0.0.1:8000:8000"
+    command: "npm start"
+
+volumes:
+  database:
+
+networks:
+  default:
+    external:
+      name: webnet
