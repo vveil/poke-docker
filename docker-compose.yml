@@ -1,8 +1,6 @@
 services:
   server:
-    build:
-      context: .
-      dockerfile: ./Dockerfile.server
+    image: ghcr.io/vveil/rogueserver.server:latest
     command: --debug --dbaddr db:3306 --dbuser pokerogue --dbpass pokerogue --dbname pokeroguedb
     restart: unless-stopped
     depends_on:
